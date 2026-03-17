@@ -1,0 +1,108 @@
+{
+  "name": "सेवाखोज - SewaKhoj",
+  "short_name": "SewaKhoj",
+  "description": "Find trusted service providers in Nepal",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#2563eb",
+  "orientation": "portrait-primary",
+  "scope": "/",
+  "lang": "ne",
+  "dir": "ltr",
+  "categories": ["business", "utilities", "lifestyle"],
+  "icons": [
+    {
+      "src": "/icons/icon-72x72.png",
+      "sizes": "72x72",
+      "type": "image/png",
+      "purpose": "maskable any"
+    },
+    {
+      "src": "/icons/icon-96x96.png",
+      "sizes": "96x96",
+      "type": "image/png",
+      "purpose": "maskable any"
+    },
+    {
+      "src": "/icons/icon-128x128.png",
+      "sizes": "128x128",
+      "type": "image/png",
+      "purpose": "maskable any"
+    },
+    {
+      "src": "/icons/icon-144x144.png",
+      "sizes": "144x144",
+      "type": "image/png",
+      "purpose": "maskable any"
+    },
+    {
+      "src": "/icons/icon-152x152.png",
+      "sizes": "152x152",
+      "type": "image/png",
+      "purpose": "maskable any"
+    },
+    {
+      "src": "/icons/icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable any"
+    },
+    {
+      "src": "/icons/icon-384x384.png",
+      "sizes": "384x384",
+      "type": "image/png",
+      "purpose": "maskable any"
+    },
+    {
+      "src": "/icons/icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable any"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "/screenshots/home.png",
+      "sizes": "1280x720",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "SewaKhoj Home Screen"
+    },
+    {
+      "src": "/screenshots/mobile-home.png",
+      "sizes": "375x667",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "SewaKhoj Mobile Home"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Post Job",
+      "short_name": "Post Job",
+      "description": "Post a new service request",
+      "url": "/post-job",
+      "icons": [{ "src": "/icons/post-job.png", "sizes": "96x96" }]
+    },
+    {
+      "name": "Find Services",
+      "short_name": "Services",
+      "description": "Browse available services",
+      "url": "/services",
+      "icons": [{ "src": "/icons/services.png", "sizes": "96x96" }]
+    },
+    {
+      "name": "Messages",
+      "short_name": "Chat",
+      "description": "View your messages",
+      "url": "/chat",
+      "icons": [{ "src": "/icons/chat.png", "sizes": "96x96" }]
+    }
+  ],
+  "prefer_related_applications": false,
+  "related_applications": [],
+  "edge_side_panel": {
+    "preferred_width": 400
+  }
+}
