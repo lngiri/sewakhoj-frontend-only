@@ -1,5 +1,6 @@
 import React from 'react';
 import TechnicianPageClient from './TechnicianPageClient';
+import { LanguageProvider } from '@/components/LanguageSwitch';
 
 export async function generateStaticParams() {
   return [
@@ -10,7 +11,11 @@ export async function generateStaticParams() {
 }
 
 export default function TechnicianPage({ params }: { params: { id: string } }) {
-  return <TechnicianPageClient technicianId={params.id} />;
+  return (
+    <LanguageProvider>
+      <TechnicianPageClient technicianId={params.id} />
+    </LanguageProvider>
+  );
 }
 import { 
   StarIcon, 
