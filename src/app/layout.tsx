@@ -28,6 +28,14 @@ export const metadata: Metadata = {
     siteName: 'SewaKhoj',
     locale: 'ne_NP',
     type: 'website',
+    images: [
+      {
+        url: '/og-image.png',
+        width: 1200,
+        height: 630,
+        alt: 'SewaKhoj - Find Service Providers in Nepal',
+      },
+    ],
   },
   twitter: {
     card: 'summary_large_image',
@@ -46,31 +54,14 @@ export const metadata: Metadata = {
       'max-snippet': -1,
     },
   },
-  verification: {
-    google: 'your-google-verification-code',
-  },
   icons: {
-    icon: [
-      { url: '/favicon-16x16.png', sizes: '16x16', type: 'image/png' },
-      { url: '/favicon-32x32.png', sizes: '32x32', type: 'image/png' },
-    ],
-    apple: [
-      { url: '/apple-touch-icon.png', sizes: '180x180', type: 'image/png' },
-    ],
-    other: [
-      { rel: 'mask-icon', url: '/safari-pinned-tab.svg', color: '#2563eb' },
-    ],
+    icon: '/favicon.ico',
+    shortcut: '/favicon-16x16.png',
+    apple: '/apple-touch-icon.png',
   },
   manifest: '/manifest.json',
-  other: {
-    'msapplication-TileColor': '#2563eb',
-    'theme-color': '#2563eb',
-    'apple-mobile-web-app-capable': 'yes',
-    'apple-mobile-web-app-status-bar-style': 'default',
-    'apple-mobile-web-app-title': 'SewaKhoj',
-    'mobile-web-app-capable': 'yes',
-    'application-name': 'SewaKhoj',
-    'apple-touch-fullscreen': 'yes',
+  verification: {
+    google: 'your-google-verification-code',
   },
 };
 

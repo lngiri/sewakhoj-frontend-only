@@ -1,12 +1,19 @@
-'use client';
+import React from 'react';
+import ServicePageClient from './ServicePageClient';
 
-import React, { useState, useEffect } from 'react';
-import { useParams, useRouter } from 'next/navigation';
-import Header from '@/components/Header';
-import TechnicianCard from '@/components/TechnicianCard';
-import { LanguageProvider, useLanguage } from '@/components/LanguageSwitch';
-import { MagnifyingGlassIcon, FunnelIcon, StarIcon, MapPinIcon } from '@heroicons/react/24/outline';
-import { api } from '@/lib/api';
+export async function generateStaticParams() {
+  return [
+    { id: '1' },
+    { id: '2' },
+    { id: '3' },
+    { id: '4' },
+    { id: '5' },
+  ];
+}
+
+export default function ServicePage({ params }: { params: { id: string } }) {
+  return <ServicePageClient serviceId={params.id} />;
+}
 
 interface Service {
   _id: string;
@@ -274,11 +281,3 @@ const ServiceSearchContent: React.FC = () => {
     </div>
   );
 };
-
-export default function ServiceSearchPage() {
-  return (
-    <LanguageProvider>
-      <ServiceSearchContent />
-    </LanguageProvider>
-  );
-}

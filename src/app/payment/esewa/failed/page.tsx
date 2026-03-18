@@ -1,12 +1,12 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Header from '@/components/Header';
 import { LanguageProvider, useLanguage } from '@/components/LanguageSwitch';
 import { XCircleIcon } from '@heroicons/react/24/outline';
 
-const EsewaFailedPage: React.FC = () => {
+function EsewaFailedContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { language } = useLanguage();
@@ -19,98 +19,111 @@ const EsewaFailedPage: React.FC = () => {
       const transactionUuid = searchParams.get('transaction_uuid');
       
       if (!transactionUuid) {
-        setError('Transaction ID not found');
+        setError('Transaction UUID not found');
         setVerifying(false);
         return;
       }
 
       try {
-        const response = await fetch(`/api/payments/esewa/verify?transaction_uuid=${transactionUuid}&status=failed`);
-        const data = await response.json();
+        // Verify payment status with backend
+        const response = await fetch('/api/payment/esewa/verify', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ transaction_uuid: transactionUuid }),
+        });
 
-        if (!data.success) {
-          setError(data.message || 'Payment was cancelled or failed');
-        } else {
-          // This shouldn't happen, but handle it
-          router.push('/payment/esewa/success');
+        const result = await response.json();
+        
+        if (!result.success) {
+          setError(result.message || 'Payment verification failed');
         }
-      } catch (err) {
-        setError('Failed to verify payment status');
+      } catch (error) {
+        setError('Failed to verify payment');
       } finally {
         setVerifying(false);
       }
     };
 
     verifyPayment();
-  }, [searchParams, router]);
-
-  const texts = {
-    ne: {
-      title: 'भुक्तानी असफल',
-      verifying: 'भुक्तानी स्थिति जाँच गरिँदै...',
-      paymentFailed: 'तपाईंको भुक्तानी रद्द गरियो वा असफल भयो',
-      tryAgain: 'पुन: प्रयास गर्नुहोस्',
-      backToDashboard: 'ड्यासबोर्डमा जानुहोस्'
-    },
-    en: {
-      title: 'Payment Failed',
-      verifying: 'Checking payment status...',
-      paymentFailed: 'Your payment was cancelled or failed',
-      tryAgain: 'Try Again',
-      backToDashboard: 'Go to Dashboard'
-    }
-  };
-
-  const t = texts[language];
+  }, [searchParams]);
 
   return (
     <div className="min-h-screen bg-gray-50">
       <Header />
-      
-      <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="flex flex-col items-center justify-center min-h-[60vh]">
-          {verifying ? (
-            <div className="text-center">
-              <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-blue-600 mx-auto mb-4"></div>
-              <h2 className="text-2xl font-semibold text-gray-900 mb-2">
-                {t.verifying}
-              </h2>
-            </div>
-          ) : (
-            <div className="text-center">
-              <XCircleIcon className="h-16 w-16 text-red-600 mx-auto mb-4" />
-              <h2 className="text-2xl font-semibold text-gray-900 mb-2">
-                {t.title}
-              </h2>
-              <p className="text-gray-600 mb-6">
-                {error}
-              </p>
-              <div className="flex space-x-4">
-                <button
-                  onClick={() => router.back()}
-                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-                >
-                  {t.tryAgain}
-                </button>
-                <button
-                  onClick={() => router.push('/dashboard')}
-                  className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
-                >
-                  {t.backToDashboard}
-                </button>
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="max-w-md mx-auto">
+          <div className="bg-white rounded-lg shadow-sm p-6 text-center">
+            <div className="flex justify-center mb-4">
+              <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center">
+                <XCircleIcon className="w-8 h-8 text-red-600" />
               </div>
             </div>
-          )}
+            
+            <h1 className="text-2xl font-bold text-gray-900 mb-2">
+              {verifying 
+                ? (language === 'ne' ? 'पेमेन्ट प्रमाणीकरण गर्दै...' : 'Verifying Payment...')
+                : (language === 'ne' ? 'पेमेन्ट असफल' : 'Payment Failed')
+              }
+            </h1>
+            
+            {verifying ? (
+              <div className="flex justify-center py-4">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+              </div>
+            ) : (
+              <>
+                {error && (
+                  <p className="text-red-600 mb-4">{error}</p>
+                )}
+                
+                <p className="text-gray-600 mb-6">
+                  {language === 'ne' 
+                    ? 'तपाईंको पेमेन्ट प्रक्रिया असफल भयो। कृपया पुन: प्रयास गर्नुहोस्।'
+                    : 'Your payment could not be processed. Please try again.'
+                  }
+                </p>
+              </>
+            )}
+            
+            <div className="space-y-3">
+              <button
+                onClick={() => router.push('/payment')}
+                className="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+              >
+                {language === 'ne' ? 'पुन: पेमेन्ट गर्नुहोस्' : 'Try Payment Again'}
+              </button>
+              
+              <button
+                onClick={() => router.push('/')}
+                className="w-full px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+              >
+                {language === 'ne' ? 'होमपेजमा जानुहोस्' : 'Go to Homepage'}
+              </button>
+            </div>
+          </div>
         </div>
       </main>
     </div>
   );
-};
+}
 
 export default function EsewaFailedPage() {
   return (
     <LanguageProvider>
-      <EsewaFailedPage />
+      <Suspense fallback={
+        <div className="min-h-screen bg-gray-50">
+          <Header />
+          <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <div className="flex justify-center items-center h-64">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+            </div>
+          </main>
+        </div>
+      }>
+        <EsewaFailedContent />
+      </Suspense>
     </LanguageProvider>
   );
 }

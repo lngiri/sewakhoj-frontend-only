@@ -1,9 +1,17 @@
-'use client';
+import React from 'react';
+import TechnicianPageClient from './TechnicianPageClient';
 
-import React, { useState, useEffect } from 'react';
-import { useParams } from 'next/navigation';
-import Header from '@/components/Header';
-import { LanguageProvider, useLanguage } from '@/components/LanguageSwitch';
+export async function generateStaticParams() {
+  return [
+    { id: '1' },
+    { id: '2' },
+    { id: '3' },
+  ];
+}
+
+export default function TechnicianPage({ params }: { params: { id: string } }) {
+  return <TechnicianPageClient technicianId={params.id} />;
+}
 import { 
   StarIcon, 
   MapPinIcon, 
@@ -441,11 +449,3 @@ const TechnicianProfileContent: React.FC = () => {
     </div>
   );
 };
-
-export default function TechnicianProfilePage() {
-  return (
-    <LanguageProvider>
-      <TechnicianProfileContent />
-    </LanguageProvider>
-  );
-}
