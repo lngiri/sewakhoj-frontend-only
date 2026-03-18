@@ -1,50 +1,98 @@
 'use client';
 
-import React, { useState, useEffect, Suspense } from 'react';
+import React, { useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { LanguageProvider, useLanguage } from '@/components/LanguageSwitch';
-import { ArrowLeftIcon, PhoneIcon } from '@heroicons/react/24/outline';
+import { PhoneIcon, ArrowLeftIcon } from '@heroicons/react/24/outline';
 import { api } from '@/lib/api';
 
-const LoginContent: React.FC = () => {
+// Phone validation function
+const validatePhoneNumber = (phone: string): { isValid: boolean; error: string } => {
+  // Remove spaces for validation
+  const cleanPhone = phone.replace(/\s/g, '');
+  
+  // Nepal format: +977 98XXXXXXXX
+  const nepalPhoneRegex = /^\+97798\d{8}$/;
+  
+  if (!nepalPhoneRegex.test(cleanPhone)) {
+    return {
+      isValid: false,
+      error: 'Invalid format. Use: +977 98XXXXXXXX'
+    };
+  }
+  
+  return { isValid: true, error: '' };
+};
+
+// Format phone number for display
+const formatPhoneNumber = (phone: string): string => {
+  // Remove all non-digit and non-plus characters
+  let clean = phone.replace(/[^\d+]/g, '');
+  
+  // Ensure it starts with +977
+  if (!clean.startsWith('+977')) {
+    if (clean.startsWith('977')) {
+      clean = '+' + clean;
+    } else if (clean.startsWith('98')) {
+      clean = '+977' + clean;
+    } else {
+      clean = '+977' + clean;
+    }
+  }
+  
+  return clean;
+};
+
+function PhoneAuthContent() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const { language } = useLanguage();
+  
   const [phone, setPhone] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
-  
-  const { language } = useLanguage();
-  const router = useRouter();
-  const searchParams = useSearchParams();
 
-  // Prefill phone number from query params
-  useEffect(() => {
-    const phoneFromQuery = searchParams.get('phone');
-    if (phoneFromQuery) {
-      setPhone(decodeURIComponent(phoneFromQuery));
-    }
-  }, [searchParams]);
+  const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    // Allow only digits, plus sign, and spaces
+    const sanitized = value.replace(/[^\d+\s]/g, '');
+    setPhone(sanitized);
+    setError('');
+  };
 
-  const handleLogin = async (e: React.FormEvent) => {
+  const handleContinue = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     setError('');
 
+    // Format and validate phone
+    const formattedPhone = formatPhoneNumber(phone);
+    const validation = validatePhoneNumber(formattedPhone);
+    
+    if (!validation.isValid) {
+      setError(validation.error);
+      setIsLoading(false);
+      return;
+    }
+
     try {
-      // Direct login without OTP
-      const response = await api.post('/auth/login', {
-        phoneNumber: phone
+      // Check if phone number exists in database
+      const response = await api.post('/auth/check-phone', {
+        phoneNumber: formattedPhone
       });
 
-      if (response.data.success) {
-        // Store token and user data
-        localStorage.setItem('token', response.data.token);
-        localStorage.setItem('user', JSON.stringify(response.data.user));
-        
-        // Redirect to home
-        router.push('/');
+      const { exists } = response.data;
+
+      if (exists) {
+        // Phone exists → redirect to login with pre-filled phone
+        router.push(`/login?phone=${encodeURIComponent(formattedPhone)}`);
+      } else {
+        // Phone doesn't exist → redirect to register with pre-filled phone
+        router.push(`/register?phone=${encodeURIComponent(formattedPhone)}`);
       }
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Login failed. Please try again.');
+      setError(err.response?.data?.message || 'Failed to check phone number. Please try again.');
     } finally {
       setIsLoading(false);
     }
@@ -52,26 +100,26 @@ const LoginContent: React.FC = () => {
 
   const texts = {
     ne: {
-      title: 'लगइन गर्नुहोस्',
-      subtitle: 'तपाईंको फोन नम्बर प्रयोग गरेर लगइन गर्नुहोस्',
+      title: 'फोन नम्बर प्रविष्ट गर्नुहोस्',
+      subtitle: 'जारी राख्न आफ्नो फोन नम्बर प्रविष्ट गर्नुहोस्',
       phoneLabel: 'फोन नम्बर',
       phonePlaceholder: '+977 98XXXXXXXX',
-      login: 'लगइन गर्नुहोस्',
-      loggingIn: 'लगइन हुँदैछ...',
+      continue: 'जारी राख्नुहोस्',
       back: 'पछाडि जानुहोस्',
-      noAccount: 'खाता छैन?',
-      registerHere: 'दर्ता गर्नुहोस्',
+      newUser: 'नयाँ प्रयोगकर्ता हुनुहुन्छ?',
+      registerHere: 'यहाँ दर्ता गर्नुहोस्',
+      checking: 'जाँच गर्दै...',
     },
     en: {
-      title: 'Login',
-      subtitle: 'Login using your phone number',
+      title: 'Enter Phone Number',
+      subtitle: 'Enter your phone number to continue',
       phoneLabel: 'Phone Number',
       phonePlaceholder: '+977 98XXXXXXXX',
-      login: 'Login',
-      loggingIn: 'Logging in...',
+      continue: 'Continue',
       back: 'Go Back',
-      noAccount: "Don't have an account?",
+      newUser: 'New user?',
       registerHere: 'Register here',
+      checking: 'Checking...',
     }
   };
 
@@ -80,7 +128,7 @@ const LoginContent: React.FC = () => {
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
-        <Link href="/phone-auth" className="flex items-center text-blue-600 hover:text-blue-800 mb-6">
+        <Link href="/" className="flex items-center text-blue-600 hover:text-blue-800 mb-6">
           <ArrowLeftIcon className="h-5 w-5 mr-2" />
           {t.back}
         </Link>
@@ -95,7 +143,7 @@ const LoginContent: React.FC = () => {
 
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
         <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
-          <form className="space-y-6" onSubmit={handleLogin}>
+          <form className="space-y-6" onSubmit={handleContinue}>
             <div>
               <label htmlFor="phone" className="block text-sm font-medium text-gray-700">
                 {t.phoneLabel}
@@ -110,12 +158,15 @@ const LoginContent: React.FC = () => {
                   type="tel"
                   required
                   value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
+                  onChange={handlePhoneChange}
                   placeholder={t.phonePlaceholder}
                   className="pl-10 block w-full border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500 sm:text-sm py-3"
                   disabled={isLoading}
                 />
               </div>
+              <p className="mt-1 text-xs text-gray-500">
+                {language === 'ne' ? 'उदाहरण: +977 9812345678' : 'Example: +977 9812345678'}
+              </p>
             </div>
 
             {error && (
@@ -133,10 +184,10 @@ const LoginContent: React.FC = () => {
                 {isLoading ? (
                   <>
                     <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                    {t.loggingIn}
+                    {t.checking}
                   </>
                 ) : (
-                  t.login
+                  t.continue
                 )}
               </button>
             </div>
@@ -144,9 +195,9 @@ const LoginContent: React.FC = () => {
 
           <div className="mt-8 text-center">
             <p className="text-sm text-gray-600">
-              {t.noAccount}{' '}
+              {t.newUser}{' '}
               <Link
-                href={`/register${phone ? `?phone=${encodeURIComponent(phone)}` : ''}`}
+                href="/register-technician"
                 className="font-medium text-blue-600 hover:text-blue-800 underline"
               >
                 {t.registerHere}
@@ -157,9 +208,9 @@ const LoginContent: React.FC = () => {
       </div>
     </div>
   );
-};
+}
 
-export default function LoginPage() {
+export default function PhoneAuthPage() {
   return (
     <LanguageProvider>
       <Suspense fallback={
@@ -167,7 +218,7 @@ export default function LoginPage() {
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
         </div>
       }>
-        <LoginContent />
+        <PhoneAuthContent />
       </Suspense>
     </LanguageProvider>
   );
