@@ -4,7 +4,14 @@ const nextConfig = {
   trailingSlash: true,
   images: {
     unoptimized: true,
-    domains: ['sewakhoj-final.up.railway.app']
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'sewakhoj-final-production.up.railway.app',
+        port: '',
+        pathname: '/api/**',
+      },
+    ],
   },
   assetPrefix: undefined,
   basePath: ''
